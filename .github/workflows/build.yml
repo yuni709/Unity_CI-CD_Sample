@@ -1,11 +1,6 @@
-name: Build
-
+name: Buil project
 on:
   workflow_dispatch: {}
-  push:
-    branches:[main]
-    # types: [closed]
-    # debug by hand
 
 jobs:
   build:
