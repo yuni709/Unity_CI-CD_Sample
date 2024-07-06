@@ -1,21 +1,38 @@
-name: Buil project
+name: Build App windows
+
 on:
-  workflow_dispatch: {}
+  workflow_dispatch: { }
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  build:
-    name: Build my project
-    runs-on: ubuntu-latest
+  buildForWindowsBasedPlatforms:
+    name: Build for ${{ matrix.targetPlatform }}
+    runs-on: [ self-hosted, Windows ]
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+        buildMethod:
+          - BuildApp.Build
+        unityPath:
+          - '"C:\Program Files\Unity\Hub\Editor\2020.3.33f1\Editor\Unity.exe"' #使用しているUnityのバージョンのパス
     steps:
-      # Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Build
-      - name: Build project
-        uses: game-ci/unity-builder@v2
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      - uses: actions/checkout@v4
         with:
-          targetPlatform: WebGL
-          unityVersion: 2022.3.32f1
+          lfs: true
+          clean: false
+          submodules: recursive
+
+      - name: Run Build
+        run: |
+          ${{ matrix.unityPath }} -batchmode -quit -projectPath . -buildTarget ${{matrix.targetPlatform}} -executeMethod ${{ matrix.buildMethod }} -logFile -
+
+      - name: Upload App
+        uses: actions/upload-artifact@v3
+        with:
+          name: App_Develop
+          path: Builds/App/
+          retention-days: 7
